@@ -4,8 +4,36 @@
 
 class SDCallbacks : public MSCCallbacks {
     SDCard2USB* m_parent;
+    char _vendor_id[8+1];
+    char _product_id[16+1];
+    char _product_rev[4+1];
+
 public:
-    SDCallbacks(SDCard2USB* ram) { m_parent = ram; }
+    SDCallbacks(SDCard2USB* ram) 
+    { 
+        m_parent = ram; 
+        const char vid[] = "ESP32-S2";
+        const char pid[] = "SD card";
+        const char rev[] = "1.0";
+
+        strcpy(_vendor_id  , vid);
+        strcpy(_product_id , pid);
+        strcpy(_product_rev, rev);
+    }
+
+    SDCallbacks(SDCard2USB* ram, const char* vid, const char* pid, const char* rev) 
+    { 
+        m_parent = ram; 
+        memset(_vendor_id, 0, 8+1);
+        strncpy(_vendor_id, vid, 8);
+
+        memset(_product_id, 0, 16+1);
+        strncpy(_product_id, pid, 16);
+
+        memset(_product_rev, 0, 4+1);
+        strncpy(_product_rev, rev, 4);
+    }
+
     ~SDCallbacks() { }
     void onInquiry(uint8_t lun, uint8_t vendor_id[8], uint8_t product_id[16], uint8_t product_rev[4]) 
     {
@@ -13,13 +41,9 @@ public:
         {
             m_parent->m_private->onInquiry(lun, vendor_id, product_id, product_rev);
         } else {
-            const char vid[] = "ESP32-S2";
-            const char pid[] = "SD card";
-            const char rev[] = "1.0";
-
-            memcpy(vendor_id  , vid, strlen(vid));
-            memcpy(product_id , pid, strlen(pid));
-            memcpy(product_rev, rev, strlen(rev));
+            memcpy(vendor_id  , _vendor_id, strlen(_vendor_id));
+            memcpy(product_id , _product_id, strlen(_product_id));
+            memcpy(product_rev, _product_rev, strlen(_product_rev));
             log_v("default onInquiry");
         }
     }
@@ -64,7 +88,7 @@ public:
     {
         log_v("default onread");
         (void) lun;
-        SD.readRAW((uint8_t*)buffer, lba);
+        m_parent->getSD().readRAW((uint8_t*)buffer, lba);
 
         return bufsize;
     }
@@ -72,7 +96,7 @@ public:
     {
         log_v("default onwrite");
         (void) lun;
-        SD.writeRAW((uint8_t*)buffer, lba);
+        m_parent->getSD().writeRAW((uint8_t*)buffer, lba);
 
         return bufsize;
     }
@@ -83,6 +107,11 @@ SDCard2USB::SDCard2USB( )
     MSCusb::setCallbacks(new SDCallbacks(this));
 }
 
+SDCard2USB::SDCard2USB(const char* vid, const char* pid, const char* rev)
+{
+    MSCusb::setCallbacks(new SDCallbacks(this, vid, pid, rev));
+}
+
 bool SDCard2USB::begin(char* str)
 {
     assert(block_count);
@@ -91,10 +120,21 @@ bool SDCard2USB::begin(char* str)
     return MSCusb::begin(str);
 }
 
+void SDCard2USB::setSD(fs::SDFS& sd)
+{
+    _sd = sd;
+}
+
+fs::SDFS &SDCard2USB::getSD()
+{
+    return _sd;
+}
+
 bool SDCard2USB::initSD(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)
 {
-    if(!SD.begin(ssPin, spi, frequency, mountpoint, max_files)){
-        Serial.println("Card Mount Failed");
+    if(!_sd.begin(ssPin, spi, frequency, mountpoint, max_files))
+    {
+        //Serial.println("Card Mount Failed");
         return false;
     }
 
@@ -107,19 +147,19 @@ bool SDCard2USB::initSD(int8_t sck, int8_t miso, int8_t mosi, int8_t ss)
     static SPIClass* spi = NULL;
     spi = new SPIClass(FSPI);
     spi->begin(sck, miso, mosi, ss);
-    if(!SD.begin(ss, *spi, 40000000)){
-        Serial.println("Card Mount Failed");
+    if(!_sd.begin(ss, *spi, 40000000)){
+        //Serial.println("Card Mount Failed");
         return false;
     }
     
-    uint8_t cardType = SD.cardType();
+    uint8_t cardType = _sd.cardType();
 
     if(cardType == CARD_NONE){
-        Serial.println("No SD card attached");
+        //Serial.println("No SD card attached");
         return false;
     }
 
-    block_count = SD.cardSize() / block_size;
+    block_count = _sd.cardSize() / block_size;
     sdcardReady = true;
     return true;
 }

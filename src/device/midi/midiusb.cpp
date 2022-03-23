@@ -92,7 +92,7 @@ bool MIDIusb::setSong(uint8_t *song, size_t len)
     if (strstr((char*)song, "MT") != NULL)
     {
         _song = (uint8_t*)strstr((char*)_song, "MTrk");
-        Serial.println("MTrk");
+        //Serial.println("MTrk");
     }
     do{
         song++;
@@ -112,7 +112,7 @@ uint8_t parseMeta(uint8_t* _song, size_t i)
     if (_song[i + 1] == 0x0){
         n = 3;
     }else if (_song[i + 1] == 0x03){
-        Serial.println(_song[i + 3]);    
+        //Serial.println(_song[i + 3]);    
         n = _song[i+2] + 3;
     } else if (_song[i + 1] <= 0x07){
         n = _song[i+2] + 3;
@@ -184,8 +184,6 @@ void MIDIusb::playSong()
             noteOFF(_song[i + 1], _song[i + 2]);
             i += 2;
             log_v("off");
-        } else {
-            Serial.printf("unknown: %d\n", _song[i]);
         }
     }
 }
@@ -193,13 +191,7 @@ void MIDIusb::playSong()
 void tud_midi_rx_cb(uint8_t itf)
 {
     uint8_t _mid[4] = {0};
-    if(tud_midi_packet_read(_mid)) {
-      for (size_t i = 0; i < 4; i++)
-      {
-        Serial.printf("%02x ", _mid[i]);      
-      }
-      Serial.println();
-    } else log_e("failed to receive");
+    tud_midi_packet_read(_mid);
 }
 
 int MIDIusb::available()
