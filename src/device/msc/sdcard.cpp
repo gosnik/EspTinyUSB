@@ -62,7 +62,7 @@ public:
         (void) lun;
         *block_count = m_parent->block_count;
         *block_size = m_parent->block_size;
-        log_v("ram disk block count: %d, block size: %d", *block_count, *block_size);
+        Serial.printf("disk block count: %d, block size: %d\n", *block_count, *block_size);
     }
     bool onStop(uint8_t lun, uint8_t power_condition, bool start, bool load_eject)
     {
@@ -86,19 +86,21 @@ public:
     }
     int32_t onRead(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
     {
-        log_v("default onread");
+        //log_v("default onread");
         (void) lun;
-        m_parent->getSD().readRAW((uint8_t*)buffer, lba);
-
-        return bufsize;
+        //Serial.printf("sdcard onRead lba:%d offset:%d len:%d\n", lba, offset, bufsize);
+        if (RES_OK == SD.sd_read((uint8_t*)buffer, lba, bufsize/m_parent->block_size))
+            return bufsize;
+        return 0;
     }
     int32_t onWrite(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
     {
-        log_v("default onwrite");
+        //log_v("default onwrite");
         (void) lun;
-        m_parent->getSD().writeRAW((uint8_t*)buffer, lba);
-
-        return bufsize;
+        //Serial.printf("sdcard onWrite lba:%d offset:%d len:%d\n", lba, offset, bufsize);
+        if (RES_OK == SD.sd_write((const uint8_t*)buffer, lba, bufsize/m_parent->block_size))
+            return bufsize;
+        return 0;
     }
 };
 
@@ -120,19 +122,9 @@ bool SDCard2USB::begin(char* str)
     return MSCusb::begin(str);
 }
 
-void SDCard2USB::setSD(fs::SDFS& sd)
+bool SDCard2USB::initSD(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files, const ff_diskio_impl_t * impl)
 {
-    _sd = sd;
-}
-
-fs::SDFS &SDCard2USB::getSD()
-{
-    return _sd;
-}
-
-bool SDCard2USB::initSD(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)
-{
-    if(!_sd.begin(ssPin, spi, frequency, mountpoint, max_files))
+    if(!SD.begin(ssPin, spi, frequency, mountpoint, max_files))
     {
         //Serial.println("Card Mount Failed");
         return false;
@@ -141,25 +133,26 @@ bool SDCard2USB::initSD(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const 
     return true;
 }
 
-bool SDCard2USB::initSD(int8_t sck, int8_t miso, int8_t mosi, int8_t ss)
+bool SDCard2USB::initSD(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, const ff_diskio_impl_t * impl)
 {
 
     static SPIClass* spi = NULL;
     spi = new SPIClass(FSPI);
     spi->begin(sck, miso, mosi, ss);
-    if(!_sd.begin(ss, *spi, 40000000)){
+    if(!SD.begin(ss, *spi, 40000000, "/sd", 5, true, impl))
+    {
         //Serial.println("Card Mount Failed");
         return false;
     }
     
-    uint8_t cardType = _sd.cardType();
+    uint8_t cardType = SD.cardType();
 
     if(cardType == CARD_NONE){
         //Serial.println("No SD card attached");
         return false;
     }
 
-    block_count = _sd.cardSize() / block_size;
+    block_count = SD.cardSize() / block_size;
     sdcardReady = true;
     return true;
 }

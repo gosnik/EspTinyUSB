@@ -122,6 +122,7 @@ EspTinyUSB::EspTinyUSB(bool extPhy)
         strings.vendor = _vendor;
 
         _bcdUSB = 0x200;
+        //_bcdUSB = USB_BCD;//0x0110;
         esp_register_shutdown_handler(usb_persist_shutdown_handler);
     }
 }
@@ -201,7 +202,7 @@ bool EspTinyUSB::begin(char* str, uint8_t n)
         return true;
     }
 
-    return xTaskCreate(esptinyusbtask, "espUSB", 4 * 1024, NULL, 24, &usbTaskHandle) == pdTRUE;
+    return xTaskCreate(esptinyusbtask, "espUSB", 4 * 1024, NULL, configMAX_PRIORITIES-1, &usbTaskHandle) == pdTRUE;
 }
 
 void EspTinyUSB::registerDeviceCallbacks(USBCallbacks* cb)
