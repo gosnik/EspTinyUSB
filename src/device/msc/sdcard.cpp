@@ -139,7 +139,7 @@ bool SDCard2USB::initSD(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, const f
     static SPIClass* spi = NULL;
     spi = new SPIClass(FSPI);
     spi->begin(sck, miso, mosi, ss);
-    if(!SD.begin(ss, *spi, 40000000, "/sd", 5, true, impl))
+    if(!SD.begin(ss, *spi, 80000000, "/sd", 5, true, impl))
     {
         //Serial.println("Card Mount Failed");
         return false;

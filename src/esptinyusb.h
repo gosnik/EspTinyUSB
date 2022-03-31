@@ -83,9 +83,9 @@ public:
     void deviceID(uint16_t *, uint16_t *);
     void useDFU(bool);
     void useMSC(bool);
-    static void manufacturer(char*);
-    static void product(char*);
-    static void serial(char*);
+    static void manufacturer(const char*);
+    static void product(const char*);
+    static void serial(const char*);
     static void revision(uint16_t);
     virtual void setBaseEP(uint8_t) = 0;
 

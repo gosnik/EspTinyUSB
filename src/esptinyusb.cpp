@@ -127,17 +127,17 @@ EspTinyUSB::EspTinyUSB(bool extPhy)
     }
 }
 
-void EspTinyUSB::manufacturer(char* str)
+void EspTinyUSB::manufacturer(const char* str)
 {
     strings.manufacturer = str;
 }
 
-void EspTinyUSB::product(char* str)
+void EspTinyUSB::product(const char* str)
 {
     strings.product = str;
 }
 
-void EspTinyUSB::serial(char* str)
+void EspTinyUSB::serial(const char* str)
 {
     strings.serial = str;
 }
