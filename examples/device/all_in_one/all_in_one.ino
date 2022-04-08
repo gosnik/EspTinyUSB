@@ -79,6 +79,7 @@ void setup()
     keyboard.begin();
     keyboard.setCallbacks(new MyHIDCallbacks());
 
+    /*
     if (fat1.init("/fat1", "ffat"))
     {
         if (fat1.begin())
@@ -97,6 +98,7 @@ void setup()
         else
             log_e("LUN 2 failed");
     }
+    */
 
     WebUSBSerial.setBaseEP(5);
 

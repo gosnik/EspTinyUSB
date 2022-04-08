@@ -28,12 +28,12 @@
 
 #define TAG __func__
 static EspTinyUSB* _device = NULL;
-bool EspTinyUSB::enableCDC;
-bool EspTinyUSB::enableMSC;
-bool EspTinyUSB::enableMIDI;
-bool EspTinyUSB::enableHID;
-bool EspTinyUSB::enableVENDOR;
-bool EspTinyUSB::enableDFU;
+bool EspTinyUSB::enableCDC = false;
+bool EspTinyUSB::enableMSC = false;
+bool EspTinyUSB::enableMIDI = false;
+bool EspTinyUSB::enableHID = false;
+bool EspTinyUSB::enableVENDOR = false;
+bool EspTinyUSB::enableDFU = false;
 uint8_t EspTinyUSB::ifIdx = 0;
 int EspTinyUSB::total = 9;
 uint8_t EspTinyUSB::count = 0;
@@ -41,10 +41,10 @@ uint8_t EspTinyUSB::desc_configuration[1500] = {0};
 uint16_t EspTinyUSB::_VID = 0x303a;
 uint16_t EspTinyUSB::_PID = 0x0002;
 descriptor_strings_t EspTinyUSB::strings;
-uint16_t EspTinyUSB::_revision;
-uint16_t EspTinyUSB::_bcdUSB;
+uint16_t EspTinyUSB::_revision = 0;
+uint16_t EspTinyUSB::_bcdUSB = 0;
 size_t EspTinyUSB::hid_report_desc_len = 0;
-USBCallbacks* EspTinyUSB::m_callbacks;
+USBCallbacks* EspTinyUSB::m_callbacks = NULL;
 static void IRAM_ATTR usb_persist_shutdown_handler(void);
 
 static void esptinyusbtask(void *p)

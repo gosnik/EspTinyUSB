@@ -44,17 +44,17 @@ public:
             memcpy(vendor_id  , _vendor_id, strlen(_vendor_id));
             memcpy(product_id , _product_id, strlen(_product_id));
             memcpy(product_rev, _product_rev, strlen(_product_rev));
-            log_v("default onInquiry");
+            //log_v("default onInquiry");
         }
     }
     bool onReady(uint8_t lun) {
         if (m_parent->m_private)
         {
-            log_v("custom RAM disk onready");
             return m_parent->m_private->onReady(lun);
-        } else {
-            log_v("RAM disk always ready");
-            return m_parent->sdcardReady; // RAM disk is always ready
+        } 
+        else 
+        {
+            return m_parent->sdcardReady;
         }
     }
     void onCapacity(uint8_t lun, uint32_t* block_count, uint16_t* block_size)
@@ -62,7 +62,7 @@ public:
         (void) lun;
         *block_count = m_parent->block_count;
         *block_size = m_parent->block_size;
-        Serial.printf("disk block count: %d, block size: %d\n", *block_count, *block_size);
+        log_v("disk block count: %d, block size: %d\n", *block_count, *block_size);
     }
     bool onStop(uint8_t lun, uint8_t power_condition, bool start, bool load_eject)
     {
@@ -88,18 +88,26 @@ public:
     {
         //log_v("default onread");
         (void) lun;
-        //Serial.printf("sdcard onRead lba:%d offset:%d len:%d\n", lba, offset, bufsize);
+        
+        if (!m_parent->sdcardReady)
+            return 0;
+
         if (RES_OK == SD.sd_read((uint8_t*)buffer, lba, bufsize/m_parent->block_size))
             return bufsize;
+
         return 0;
     }
     int32_t onWrite(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
     {
         //log_v("default onwrite");
         (void) lun;
-        //Serial.printf("sdcard onWrite lba:%d offset:%d len:%d\n", lba, offset, bufsize);
+
+        if (!m_parent->sdcardReady)
+            return 0;
+
         if (RES_OK == SD.sd_write((const uint8_t*)buffer, lba, bufsize/m_parent->block_size))
             return bufsize;
+
         return 0;
     }
 };
@@ -116,8 +124,8 @@ SDCard2USB::SDCard2USB(const char* vid, const char* pid, const char* rev)
 
 bool SDCard2USB::begin(char* str)
 {
-    assert(block_count);
-    assert(block_size);
+    //assert(block_count);
+    //assert(block_size);
 
     return MSCusb::begin(str);
 }
@@ -139,16 +147,16 @@ bool SDCard2USB::initSD(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, const f
     static SPIClass* spi = NULL;
     spi = new SPIClass(FSPI);
     spi->begin(sck, miso, mosi, ss);
-    if(!SD.begin(ss, *spi, 80000000, "/sd", 5, true, impl))
+    if(!SD.begin(ss, *spi, 40000000, "/sd", 5, true, impl))
     {
-        //Serial.println("Card Mount Failed");
+        delete spi;
+        spi = NULL;
         return false;
     }
     
     uint8_t cardType = SD.cardType();
 
-    if(cardType == CARD_NONE){
-        //Serial.println("No SD card attached");
+    if(cardType == CARD_NONE) {
         return false;
     }
 
@@ -170,7 +178,7 @@ void SDCard2USB::setCallbacks(MSCCallbacks* cb)
 
 void SDCard2USB::ready(bool ready)
 {
-
+    sdcardReady = ready;
 }
 
 bool SDCard2USB::isReady()

@@ -35,6 +35,7 @@ bool HIDkeyboard::sendKey(uint8_t _keycode, uint8_t modifier)
       return sendRelease();
     }
   }
+  log_d("tud not ready");
   return false;
 }
 
