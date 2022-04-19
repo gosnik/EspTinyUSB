@@ -31,7 +31,7 @@ bool HIDkeyboard::sendKey(uint8_t _keycode, uint8_t modifier)
   if (tud_hid_ready())
   {
     if(sendPress(_keycode, modifier)) {
-      delay(2);
+      delay(10);
       return sendRelease();
     }
   }
@@ -65,7 +65,7 @@ bool HIDkeyboard::sendString(const char* _text)
   for(size_t i = 0; i < len; i++) {
     keycode = (uint8_t) _text[i];
     if(!sendKey(keymap[keycode].usage, keymap[keycode].modifier)) return false;
-    delay(2);
+    delay(10);
   }
 
   return true;
