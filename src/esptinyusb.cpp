@@ -22,7 +22,7 @@
 #define _cdc "CDC class"
 #define _dfu  "DFU class"
 #define _hid  "HID class"
-#define _midi  "MIDI class"
+#define _fido  "FIDO2 class"
 #define _msc  "MSC class"
 #define _vendor  "Vendor class (webUSB)"
 
@@ -30,7 +30,7 @@
 static EspTinyUSB* _device = NULL;
 bool EspTinyUSB::enableCDC = false;
 bool EspTinyUSB::enableMSC = false;
-bool EspTinyUSB::enableMIDI = false;
+bool EspTinyUSB::enableFIDO = false;
 bool EspTinyUSB::enableHID = false;
 bool EspTinyUSB::enableVENDOR = false;
 bool EspTinyUSB::enableDFU = false;
@@ -45,6 +45,7 @@ uint16_t EspTinyUSB::_revision = 0;
 uint16_t EspTinyUSB::_bcdUSB = 0;
 size_t EspTinyUSB::hid_report_desc_len = 0;
 USBCallbacks* EspTinyUSB::m_callbacks = NULL;
+
 static void IRAM_ATTR usb_persist_shutdown_handler(void);
 
 static void esptinyusbtask(void *p)
@@ -107,17 +108,19 @@ EspTinyUSB::EspTinyUSB(bool extPhy)
         gpio_set_drive_capability((gpio_num_t)USBPHY_DM_NUM, GPIO_DRIVE_CAP_3);
         isEnabled = true;
         _device = this;
-        _revision = 0x100;
 
         strings.langId[0] = 0x09;
         strings.langId[1] = 0x04;
+        /*
+        _revision = 0x100;
         strings.manufacturer = _manufacturer;
         strings.product = _product;
         strings.serial = _serial;
+        */
         strings.cdc = _cdc;
         strings.dfu = _dfu;
         strings.hid = _hid;
-        strings.midi = _midi;
+        strings.fido = _fido;
         strings.msc = _msc;
         strings.vendor = _vendor;
 
@@ -173,7 +176,7 @@ bool EspTinyUSB::begin(char* str, uint8_t n)
         
         case 8:
             if(str != nullptr)
-                strings.midi = str;
+                strings.fido = str;
             break;
         
         case 9:

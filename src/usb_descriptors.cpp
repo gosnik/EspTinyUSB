@@ -19,7 +19,7 @@
 #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
 #if CONFIG_TINYUSB_ENABLED
 
-#define USB_TUSB_PID (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) | _PID_MAP(DFU_RT, 5))
+#define USB_TUSB_PID (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(FIDO, 3) | _PID_MAP(VENDOR, 4) | _PID_MAP(DFU_RT, 5))
 
 uint8_t* EspTinyUSB::descriptor_config = NULL;
 uint8_t* EspTinyUSB::descriptor_config_if = NULL;
@@ -30,7 +30,7 @@ uint8_t* EspTinyUSB::getConfigurationDescriptor()
     int CONFIG_TOTAL_LEN = TUD_CONFIG_DESC_LEN + 
                         (int)enableCDC * TUD_CDC_DESC_LEN + (int)enableMSC * TUD_MSC_DESC_LEN +
                         (int)enableHID * EspTinyUSB::hid_report_desc_len + (int)enableVENDOR * TUD_VENDOR_DESC_LEN + 
-                        (int)enableMIDI * TUD_MIDI_DESC_LEN + (int)enableDFU * TUD_DFU_RT_DESC_LEN;
+                        (int)enableFIDO * TUD_FIDO_DESC_LEN + (int)enableDFU * TUD_DFU_RT_DESC_LEN;
 
 
     // interface count, string index, total length, attribute, power in mA
@@ -58,7 +58,7 @@ void EspTinyUSB::setDeviceDescriptorStrings()
     descriptor_str_config[5] = strings.msc;          // 5: MSC Interface
     descriptor_str_config[6] = strings.hid;          // 6: HIDs
     descriptor_str_config[7] = strings.vendor;       // 7: Vendor
-    descriptor_str_config[8] = strings.midi;         // 8: MIDI
+    descriptor_str_config[8] = strings.fido;         // 8: FIDO
     descriptor_str_config[9] = strings.dfu;          // 9: DFU
 }
 

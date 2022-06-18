@@ -60,7 +60,7 @@ void midi_task(void)
 
 void loop() {
   // midi_task();
-  // midi.playSong();
+  // fido.playSong();
 }
 
 // #endif

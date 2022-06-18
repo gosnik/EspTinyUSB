@@ -58,7 +58,7 @@ typedef struct
     const char *cdc;
     const char *dfu;
     const char *hid;
-    const char *midi;
+    const char *fido;
     const char *msc;
     const char *vendor;
 } descriptor_strings_t;
@@ -109,11 +109,11 @@ protected:
     uint8_t _itf;
     static USBCallbacks* m_callbacks;
 
-    xTaskHandle usbTaskHandle;
+    xTaskHandle usbTaskHandle = nullptr;
 
     static bool enableCDC;
     static bool enableMSC;
-    static bool enableMIDI;
+    static bool enableFIDO;
     static bool enableHID;
     static bool enableVENDOR;
     static bool enableDFU;
